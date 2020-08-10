@@ -1,3 +1,5 @@
+import itertools
+
 '''Classes for variable elimination Routines
    A) class BN_Variable
 
@@ -298,13 +300,64 @@ class BN:
 def multiply_factors(Factors):
     '''return a new factor that is the product of the factors in Fators'''
      #IMPLEMENT
+    if len(Factors) == 1:
+         return Factors[0]
+    elif len(Factors) == 2:
+        new_scope = Factors[0].get_scope() + Factors[1].get_scope()
+        new_scope = set(list(new_scope))
+
+        new_name = Factors[0].name + " X " + Factors[1].name
+        new_factor = Factor(new_name, new_scope)
+        for v in new_factor.get_scope():
+            if v in Factor[1].scope():
+                pass
+    # else:
+    #     scope_set = []
+    #     factor_name = ""
+    #     for f in Factors:
+    #         scope_set += f.get_scope()
+    #         factor_name += f.name + "X"
+    #     factor_name = factor_name[:-1]
+    #     scope_set = set(scope_set)
+    #     scope_set = list(scope_set)
+    #     result_factor = Factor(factor_name, scope_set)
+    #     for f in Factors:
+    #         for var in scope_set:
+    #             if(var in f.scope()):
+    #                 pass
+            #set assignments for all values in scope of each variable
+
+            #add_value_at_current_assignment multiply by relevant probabilities
+
+            #Need to know what probabilities to multiply
+        #     pass
+        # return result_factor
 
 def restrict_factor(f, var, value):
     '''f is a factor, var is a Variable, and value is a value from var.domain.
     Return a new factor that is the restriction of f by this var = value.
     Don't change f! If f has only one variable its restriction yields a
     constant factor'''
-    #IMPLEMENT
+    #TODO check for one variable factor
+    if len(f.get_scope() == 1):
+        return f.get_value_at_current_assignment(var,value)
+
+
+    new_scope = f.get_scope() - var
+    new_name = f.name + "\A"
+    new_factor = Factor(new_scope, new_name)
+
+    current_scope = f.get_scope()
+    current_domains = [s.domain() for s in current_scope]
+    domain_change = current_scope.get_index(var)
+    current_domains[domain_change] = [value]
+
+    all_possible_domains = itertools.product(*current_domains)
+    for d in all_possible_domains:
+        v = f.get_value_at_current_assignment(d)
+        new_CPT_col = [d] + [v]
+        new_factor.add_values(new_CPT_col)
+    return new_factor
 
 def sum_out_variable(f, var):
     '''return a new factor that is the product of the factors in Factors
@@ -315,6 +368,8 @@ def normalize(nums):
     '''take as input a list of number and return a new list of numbers where
     now the numbers sum to 1, i.e., normalize the input numbers'''
     #IMPLEMENT
+    normalizing_constant = sum(nums)
+    return [x/normalizing_constant for x in nums]
 
 ###Orderings
 def min_fill_ordering(Factors, QueryVar):
