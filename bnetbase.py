@@ -299,39 +299,50 @@ class BN:
 
 def multiply_factors(Factors):
     '''return a new factor that is the product of the factors in Fators'''
-     #IMPLEMENT
-    if len(Factors) == 1:
-         return Factors[0]
-    elif len(Factors) == 2:
-        new_scope = Factors[0].get_scope() + Factors[1].get_scope()
-        new_scope = set(list(new_scope))
+    num_factors = len(Factors)
+    variable_list = []     ## List of union of variables
+    name_list = []      ##List of variables already encountered, by name, the only comparison we can make
 
-        new_name = Factors[0].name + " X " + Factors[1].name
-        new_factor = Factor(new_name, new_scope)
-        for v in new_factor.get_scope():
-            if v in Factor[1].scope():
-                pass
-    # else:
-    #     scope_set = []
-    #     factor_name = ""
-    #     for f in Factors:
-    #         scope_set += f.get_scope()
-    #         factor_name += f.name + "X"
-    #     factor_name = factor_name[:-1]
-    #     scope_set = set(scope_set)
-    #     scope_set = list(scope_set)
-    #     result_factor = Factor(factor_name, scope_set)
-    #     for f in Factors:
-    #         for var in scope_set:
-    #             if(var in f.scope()):
-    #                 pass
-            #set assignments for all values in scope of each variable
+    ##Nested list of where we can find the indexes of the variables in function scope
+    # [ [indices of vars in variable list for vars in function1's scope], ... ]
+    function_index_list = []
+    #new factor name
+    new_name = ""
+    for f in Factors:
+        var_indices_for_each_function = []
+        for var in f.get_scope():
+            if var.name not in name_list:
+                name_list.append(var.name)
+                variable_list.append(var)
+            i = name_list.index(var.name)
+            var_indices_for_each_function.append(i)
+            new_name += f.name +"X"
 
-            #add_value_at_current_assignment multiply by relevant probabilities
+        function_index_list.append(var_indices_for_each_function)
 
-            #Need to know what probabilities to multiply
-        #     pass
-        # return result_factor
+
+    # Remove last 'X' from new factor name
+    new_name = new_name[:-1]
+    new_factor = Factor(new_name, variable_list)
+
+    domains = [v.domain() for v in variable_list]
+
+    all_possible_assignments = itertools.product(*domains)
+    all_new_values = []
+    for assignment in all_possible_assignments:
+        assignment_value = 1
+        for i in range(num_factors):
+            values = []
+            for var_index in function_index_list[i]:
+                values.append(assignment[var_index])
+            assignment_value*= Factors[i].get_value(values)
+
+        all_new_values.append(list(assignment) + [assignment_value])
+
+    new_factor.add_values(all_new_values)
+
+    return new_factor
+
 
 def restrict_factor(f, var, value):
     '''f is a factor, var is a Variable, and value is a value from var.domain.
@@ -339,37 +350,83 @@ def restrict_factor(f, var, value):
     Don't change f! If f has only one variable its restriction yields a
     constant factor'''
     #TODO check for one variable factor
-    if len(f.get_scope() == 1):
-        return f.get_value_at_current_assignment(var,value)
+    if len(f.get_scope()) == 1:
+        return f
 
 
-    new_scope = f.get_scope() - var
-    new_name = f.name + "\A"
-    new_factor = Factor(new_scope, new_name)
+    #get a copy of f.values
+    new_values = list(f.values)
+    new_scope = []
+    for el in f.get_scope():
+        if el == var:
+            el.set_assignment(value)
+        new_scope.append(el)
 
-    current_scope = f.get_scope()
-    current_domains = [s.domain() for s in current_scope]
-    domain_change = current_scope.get_index(var)
-    current_domains[domain_change] = [value]
-
-    all_possible_domains = itertools.product(*current_domains)
-    for d in all_possible_domains:
-        v = f.get_value_at_current_assignment(d)
-        new_CPT_col = [d] + [v]
-        new_factor.add_values(new_CPT_col)
+    new_factor = Factor(f.name+"({}={})".format(var.name,value), new_scope)
+    new_factor.values = new_values
     return new_factor
+    # new_scope = f.get_scope() - var
+    # new_name = f.name + "\A"
+    # new_factor = Factor(new_scope, new_name)
+    #
+    # current_scope = f.get_scope()
+    # current_domains = [s.domain() for s in current_scope]
+    # domain_change = current_scope.get_index(var)
+    # current_domains[domain_change] = [value]
+    #
+    # all_possible_domains = itertools.product(*current_domains)
+    # new_CPT_cols = []
+    # for d in all_possible_domains:
+    #     v = f.get_value(d)
+    #     new_CPT_cols.append(list(d) + [v])
+    # new_factor.add_values(new_CPT_cols)
+    # return new_factor
 
 def sum_out_variable(f, var):
     '''return a new factor that is the product of the factors in Factors
-       followed by the suming out of Var'''
+       followed by the summing out of Var'''
     #IMPLEMENT
+    old_scope = f.get_scope()
+    new_scope = []
+    for el in old_scope:
+        if el.name != var.name:
+            new_scope.append(el)
+
+    new_name = "Sigma{}".format(var) + f.name
+
+    new_factor = Factor(new_name, new_scope)
+
+    index_of_var = old_scope.index(var)
+    value_list = var.domain()
+    current_domains = [s.domain() for s in f.get_scope()]
+    all_possible_domains = itertools.product(*current_domains)
+    CPT_cols = []
+    get_v = 0
+    new_local_scope = []
+    for v in value_list:
+        for d in all_possible_domains:
+            get_v = 0
+            if d[index_of_var] == v:
+                get_v += f.get_value(d)
+            new_local_scope = d[0:index_of_var] + d[index_of_var+1:]
+        CPT_cols.append(list(new_local_scope) +[get_v])
+
+    new_factor.add_values(CPT_cols)
+
+    return new_factor
 
 def normalize(nums):
     '''take as input a list of number and return a new list of numbers where
     now the numbers sum to 1, i.e., normalize the input numbers'''
-    #IMPLEMENT
     normalizing_constant = sum(nums)
-    return [x/normalizing_constant for x in nums]
+
+
+    if normalizing_constant == 0:
+        return [0]
+    else:
+        return [x/normalizing_constant for x in nums]
+
+
 
 ###Orderings
 def min_fill_ordering(Factors, QueryVar):

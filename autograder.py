@@ -87,98 +87,103 @@ FW.add_values([['w', 's', 0.8], ['w', '-s', .2], ['-w', 's', 0.2], ['-w', '-s', 
 Q3 = BN('SampleQ4', [E,B,S,G,W], [FE,FB,FS,FG,FW])
 
 if __name__ == '__main__':
-    #(a)
-    print("Test 1 ....", end = '')
-    G.set_evidence('g')
-    probs = VE(Q3, S, [G])
-    if probs[0] == 1 and probs[1] == 0:
-      print("passed.")
-    else:
-      print("failed.")
 
-    print('P(s|g) = {} P(-s|g) = {}'.format(probs[0], probs[1]))
 
-    #(b)
-    print("Test 2 ....", end = '')
-    B.set_evidence('b')
-    E.set_evidence('-e')
-    probs = VE(Q3, W, [B, E])
-    if abs(probs[0] - 0.68) < 0.0001 and abs(probs[1] - 0.32) < 0.0001:
-      print("passed.")
-    else:
-      print("failed.")
+    #VARIABLE ELIMINATION TESTS ==============================================
 
-    print('P(w|b,-e) = {} P(-w|b,-e) = {}'.format(probs[0],probs[1]))
 
-    #(c)
-    print("Test 3 ....", end = '')
-    S.set_evidence('s')
-    probs1 = VE(Q3, G, [S])
-    S.set_evidence('-s')
-    probs2 = VE(Q3, G, [S])
-    if probs1[0] == 0.5 and probs1[1] == 0.5 and probs2[0] == 0.0 and probs2[1] == 1.0:
-      print("passed.")
-    else:
-      print("failed.")
-    print('P(g|s) = {} P(-g|s) = {} P(g|-s) = {} P(-g|-s) = {}'.format(probs1[0],probs1[1],probs2[0],probs2[1]))
+    # #(a)
+    # print("Test 1 ....", end = '')
+    # G.set_evidence('g')
+    # probs = VE(Q3, S, [G])
+    # if probs[0] == 1 and probs[1] == 0:
+    #   print("passed.")
+    # else:
+    #   print("failed.")
+    #
+    # print('P(s|g) = {} P(-s|g) = {}'.format(probs[0], probs[1]))
+    #
+    # #(b)
+    # print("Test 2 ....", end = '')
+    # B.set_evidence('b')
+    # E.set_evidence('-e')
+    # probs = VE(Q3, W, [B, E])
+    # if abs(probs[0] - 0.68) < 0.0001 and abs(probs[1] - 0.32) < 0.0001:
+    #   print("passed.")
+    # else:
+    #   print("failed.")
+    #
+    # print('P(w|b,-e) = {} P(-w|b,-e) = {}'.format(probs[0],probs[1]))
+    #
+    # #(c)
+    # print("Test 3 ....", end = '')
+    # S.set_evidence('s')
+    # probs1 = VE(Q3, G, [S])
+    # S.set_evidence('-s')
+    # probs2 = VE(Q3, G, [S])
+    # if probs1[0] == 0.5 and probs1[1] == 0.5 and probs2[0] == 0.0 and probs2[1] == 1.0:
+    #   print("passed.")
+    # else:
+    #   print("failed.")
+    # print('P(g|s) = {} P(-g|s) = {} P(g|-s) = {} P(-g|-s) = {}'.format(probs1[0],probs1[1],probs2[0],probs2[1]))
+    #
+    # #(d)
+    # print("Test 4 ....", end = '')
+    # S.set_evidence('s')
+    # W.set_evidence('w')
+    # probs1 = VE(Q3, G, [S,W])
+    # S.set_evidence('s')
+    # W.set_evidence('-w')
+    # probs2 = VE(Q3, G, [S,W])
+    # if probs1[0] == 0.5 and probs1[1] == 0.5 and probs2[0] == 0.5 and probs2[1] == 0.5:
+    #   print("passed.")
+    # else:
+    #   print("failed.")
+    # print('P(g|s,w) = {} P(-g|s,w) = {} P(g|s,-w) = {} P(-g|s,-w) = {}'.format(probs1[0],probs1[1],probs2[0],probs2[1]))
+    #
+    # print("Test 5 ....", end = '')
+    # S.set_evidence('-s')
+    # W.set_evidence('w')
+    # probs3 = VE(Q3, G, [S,W])
+    # S.set_evidence('-s')
+    # W.set_evidence('-w')
+    # probs4 = VE(Q3, G, [S,W])
+    # if probs3[0] == 0.0 and probs3[1] == 1.0 and probs4[0] == 0.0 and probs4[1] == 1.0:
+    #   print("passed.")
+    # else:
+    #   print("failed.")
+    # print('P(g|-s,w) = {} P(-g|-s,w) = {} P(g|-s,-w) = {} P(-g|-s,-w) = {}'.format(probs3[0],probs3[1],probs4[0],probs4[1]))
+    #
+    # #(f)
+    # print("Test 6 ....", end = '')
+    # W.set_evidence('w')
+    # probs1 = VE(Q3, G, [W])
+    # W.set_evidence('-w')
+    # probs2 = VE(Q3, G, [W])
+    # if abs(probs1[0] - 0.15265998457979954) < 0.0001 and abs(probs1[1] - 0.8473400154202004) < 0.0001 and abs(probs2[0] - 0.01336753983256819) < 0.0001 and abs(probs2[1] - 0.9866324601674318) < 0.0001:
+    #   print("passed.")
+    # else:
+    #   print("failed.")
+    # print('P(g|w) = {} P(-g|w) = {} P(g|-w) = {} P(-g|-w) = {}'.format(probs1[0],probs1[1],probs2[0],probs2[1]))
+    #
+    # #(h)
+    # print("Test 7 ....", end = '')
+    # probs = VE(Q3, G, [])
+    # if abs(probs[0] - 0.04950000000000001) < .0001 and abs(probs[1] - 0.9505) < .0001:
+    #   print("passed.")
+    # else:
+    #   print("failed.")
+    # print('P(g) = {} P(-g) = {}'.format(probs[0], probs[1]))
+    #
+    # print("Test 8 ....", end = '')
+    # probs = VE(Q3, E, [])
+    # if abs(probs[0] - 0.1) < 0.0001 and abs(probs[1] - 0.9) < 0.0001:
+    #   print("passed.")
+    # else:
+    #   print("failed.")
+    # print('P(e) = {} P(-e) = {}'.format(probs[0], probs[1]))
 
-    #(d)
-    print("Test 4 ....", end = '')
-    S.set_evidence('s')
-    W.set_evidence('w')
-    probs1 = VE(Q3, G, [S,W])
-    S.set_evidence('s')
-    W.set_evidence('-w')
-    probs2 = VE(Q3, G, [S,W])
-    if probs1[0] == 0.5 and probs1[1] == 0.5 and probs2[0] == 0.5 and probs2[1] == 0.5:
-      print("passed.")
-    else:
-      print("failed.")
-    print('P(g|s,w) = {} P(-g|s,w) = {} P(g|s,-w) = {} P(-g|s,-w) = {}'.format(probs1[0],probs1[1],probs2[0],probs2[1]))
-
-    print("Test 5 ....", end = '')
-    S.set_evidence('-s')
-    W.set_evidence('w')
-    probs3 = VE(Q3, G, [S,W])
-    S.set_evidence('-s')
-    W.set_evidence('-w')
-    probs4 = VE(Q3, G, [S,W])
-    if probs3[0] == 0.0 and probs3[1] == 1.0 and probs4[0] == 0.0 and probs4[1] == 1.0:
-      print("passed.")
-    else:
-      print("failed.")
-    print('P(g|-s,w) = {} P(-g|-s,w) = {} P(g|-s,-w) = {} P(-g|-s,-w) = {}'.format(probs3[0],probs3[1],probs4[0],probs4[1]))
-
-    #(f)
-    print("Test 6 ....", end = '')
-    W.set_evidence('w')
-    probs1 = VE(Q3, G, [W])
-    W.set_evidence('-w')
-    probs2 = VE(Q3, G, [W])
-    if abs(probs1[0] - 0.15265998457979954) < 0.0001 and abs(probs1[1] - 0.8473400154202004) < 0.0001 and abs(probs2[0] - 0.01336753983256819) < 0.0001 and abs(probs2[1] - 0.9866324601674318) < 0.0001:
-      print("passed.")
-    else:
-      print("failed.")
-    print('P(g|w) = {} P(-g|w) = {} P(g|-w) = {} P(-g|-w) = {}'.format(probs1[0],probs1[1],probs2[0],probs2[1]))
-
-    #(h)
-    print("Test 7 ....", end = '')
-    probs = VE(Q3, G, [])
-    if abs(probs[0] - 0.04950000000000001) < .0001 and abs(probs[1] - 0.9505) < .0001:
-      print("passed.")
-    else:
-      print("failed.")
-    print('P(g) = {} P(-g) = {}'.format(probs[0], probs[1]))
-
-    print("Test 8 ....", end = '')
-    probs = VE(Q3, E, [])
-    if abs(probs[0] - 0.1) < 0.0001 and abs(probs[1] - 0.9) < 0.0001:
-      print("passed.")
-    else:
-      print("failed.")
-    print('P(e) = {} P(-e) = {}'.format(probs[0], probs[1]))
-
-    ## NEW TESTS ##
+    ## MULTIPLY FACTORS TEST ##=================================================
     print("\nMultiply Factors Tests")
     print("Test 1 ....", end = '')
     factor = multiply_factors([FE])
@@ -245,7 +250,11 @@ if __name__ == '__main__':
     print('P(e,s,b) = {} P(-e,s,b) = {} P(e,-s,-b) = {} P(-e,s,-b) = {}'.format(values[0], values[1], values[2], values[3]))
 
 
-    ##
+
+
+
+
+    ## SUM OUT VARIABLES TEST ===================================================
     print("\nSum Out Variable Tests")
     print("Test 1 ....", end = '')
     factor = sum_out_variable(FE, E)
@@ -257,6 +266,7 @@ if __name__ == '__main__':
     print('sum_e P(e) = {}'.format(value))
 
     print("Test 2 ....", end = '')
+    print("variable scope is {}".format(FS.get_scope()))
     factor = sum_out_variable(FS, E)
     values = (factor.get_value(["s", "b"]), factor.get_value(["s", "-b"]), factor.get_value(["-s", "b"]), factor.get_value(["-s", "-b"]))
     tests = (abs(values[0] - 1.7) < 0.001, abs(values[1] - 0.2) < 0.001, abs(values[2] - 0.3) < 0.001, abs(values[3] - 1.8) < 0.001)
@@ -265,6 +275,10 @@ if __name__ == '__main__':
     else:
       print("failed.")
     print('P(S = s | B = b) = {} P(S = s | B = -b) = {} P(S = -s | B = b) = {} P(S = -s | B = -b) = {}'.format(values[0], values[1], values[2], values[3]))
+
+
+
+
 
     ##
     print("\nRestrict Factor Tests")
@@ -297,6 +311,21 @@ if __name__ == '__main__':
       print("failed.")
     print('P(S=-s|E=-e,B=b) = {}'.format(value))
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+    ##NORMALIZE TESTS==========================================================
+    
     print("\nNormalize Tests")
     print("Test 1 ....", end = '')
     normalized_nums = normalize([i for i in range(5)])
@@ -316,7 +345,7 @@ if __name__ == '__main__':
       print("failed.")
     print('{} when normalized to {} sum to {}'.format([i for i in range(0,-5,-1)], normalized_nums, norm_sum))
 
-    print("Test 3 ....", end = '')
+    print("Test 3 ....")
     normalized_nums = normalize([i for i in range(4,-5,-1)])
     norm_sum = sum(normalized_nums)
     if norm_sum == 0:
