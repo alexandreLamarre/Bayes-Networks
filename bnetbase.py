@@ -386,6 +386,9 @@ def sum_out_variable(f, var):
     '''return a new factor that is the product of the factors in Factors
        followed by the summing out of Var'''
     #IMPLEMENT
+    ##Check for one variable:
+
+
     old_scope = f.get_scope()
     new_scope = []
     for el in old_scope:
@@ -398,21 +401,38 @@ def sum_out_variable(f, var):
 
     index_of_var = old_scope.index(var)
     value_list = var.domain()
-    current_domains = [s.domain() for s in f.get_scope()]
-    all_possible_domains = itertools.product(*current_domains)
+    current_domains = [s.domain() for s in new_scope]
+    possible_new_domains = itertools.product(*current_domains)
+    possible_new_domains = list(possible_new_domains)
+
     CPT_cols = []
+    local = []
     get_v = 0
-    new_local_scope = []
-    for v in value_list:
-        for d in all_possible_domains:
-            get_v = 0
-            if d[index_of_var] == v:
-                get_v += f.get_value(d)
-            new_local_scope = d[0:index_of_var] + d[index_of_var+1:]
-        CPT_cols.append(list(new_local_scope) +[get_v])
+    for d in possible_new_domains:
+        d = list(d)
+        for value in value_list:
+            check = d[0:index_of_var] + [value] + d[index_of_var:]
+            get_v += f.get_value(check)
+        CPT_cols.append(d +[get_v])
+        get_v = 0
+    new_factor.add_values(CPT_cols)
+    # for v in value_list:
+    #     get_v = 0
+    #     print("value looked at: {}\n".format(v))
+    #     for d in all_possible_domains:
+    #         print("assignment looked at {}".format(d))
+    #         print("value of variable looked at in that assignment {}\n".format(d[index_of_var]))
+    #         if d[index_of_var] == v:
+    #             print("Entered condition")
+    #             get_v += f.get_value(d)
+    #             print("Got: {}\n".format(get_v))
+    #         local = list(d)
+    #     local.pop(index_of_var)
+    #     print("final value of summed probs {}".format(get_v))
+    #     CPT_cols.append(local +[get_v])
 
     new_factor.add_values(CPT_cols)
-
+    print("new_factor {}".format(new_factor))
     return new_factor
 
 def normalize(nums):

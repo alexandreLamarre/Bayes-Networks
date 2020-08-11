@@ -182,8 +182,18 @@ if __name__ == '__main__':
     # else:
     #   print("failed.")
     # print('P(e) = {} P(-e) = {}'.format(probs[0], probs[1]))
+    #
 
-    ## MULTIPLY FACTORS TEST ##=================================================
+
+
+
+
+
+
+
+
+
+    # MULTIPLY FACTORS TEST ##=================================================
     print("\nMultiply Factors Tests")
     print("Test 1 ....", end = '')
     factor = multiply_factors([FE])
@@ -324,8 +334,8 @@ if __name__ == '__main__':
 
 
 
-    ##NORMALIZE TESTS==========================================================
-    
+    #NORMALIZE TESTS==========================================================
+
     print("\nNormalize Tests")
     print("Test 1 ....", end = '')
     normalized_nums = normalize([i for i in range(5)])
