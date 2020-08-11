@@ -469,6 +469,7 @@ def min_fill_ordering(Factors, QueryVar):
         if var in Vars:
             Vars.remove(var)
         scopes = remove_var(var, new_scope, scopes)
+
     return ordering
 
 def min_fill_var(scopes, Vars):
@@ -532,3 +533,38 @@ def VE(Net, QueryVar, EvidenceVars):
    Pr(A='a'|B=1, C='c') = 0.26
     '''
     #IMPLEMENT
+    # order variables that are not the query var by heuristic
+    copy_net_factors = Net.factors()
+    ordering = min_fill_ordering(copy_net_factors, QueryVar)
+    factor_list = Net.factors()
+    #do variable elimination on variables
+    for X in ordering:
+        if X in EvidenceVars:
+            for F in factor_list:
+                if X in F.get_scope():
+                    index_to_replace = factor_list.index(F)
+                    new_factor = restrict_factor(F, X, X.get_assignment())
+                    factor_list[index_to_replace] = new_factor
+                    # Project this factor onto remaining variables?
+        else:
+            factors_concerned = []
+            for F in factor_list:
+                if X in F.get_scope():
+                    factor_list.remove(F)
+                    factors_concerned.append(F)
+            new_factor = multiply_factors(factors_concerned)
+            next_new_factor = sum_out_variable(new_factor, X)
+            factor_list.append(next_new_factor)
+
+    # Take product of final factor list that only mentions P(QueryVar| Evidence)
+    final_factor = multiply_factors(factor_list)
+
+    #assume there is only one domain variable left
+    final_variable = final_factor.get_scope()[0]
+    final_domain = final_variable.domain()
+    final_values = []
+    for f in final_domain:
+        final_factor.scope[0].set_assignment(f)
+        final_values.append(final_factor.get_value_at_current_assignments())
+
+    return normalize(final_values)
