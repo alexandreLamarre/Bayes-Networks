@@ -324,19 +324,21 @@ def multiply_factors(Factors):
     # Remove last 'X' from new factor name
     new_name = new_name[:-1]
     new_factor = Factor(new_name, variable_list)
-
+    #get domains for all variables in the scope
     domains = [v.domain() for v in variable_list]
-
+    # find every combination of these domains
     all_possible_assignments = itertools.product(*domains)
     all_new_values = []
     for assignment in all_possible_assignments:
         assignment_value = 1
         for i in range(num_factors):
             values = []
+            # get the values at the assignment restricted to the factors domain
             for var_index in function_index_list[i]:
                 values.append(assignment[var_index])
+            #multiply that value to the other values found in other factors
             assignment_value*= Factors[i].get_value(values)
-
+        # add a column of domains + values to be added to new_factor
         all_new_values.append(list(assignment) + [assignment_value])
 
     new_factor.add_values(all_new_values)
@@ -349,27 +351,45 @@ def restrict_factor(f, var, value):
     Return a new factor that is the restriction of f by this var = value.
     Don't change f! If f has only one variable its restriction yields a
     constant factor'''
-    #TODO check for one variable factor
-    if len(f.get_scope()) == 1:
-        new_scope = f.get_scope()
-        new_scope[0].set_assignment(value)
-        new_factor = Factor("{}(={})".format(f.name,value), new_scope)
-        new_values = list(f.values)
-        new_factor.values = new_values
-        return new_factor
-
-
-    #get a copy of f.values
-    new_values = list(f.values)
+    new_name = f.name + "given" + var.name + "=" + value
     new_scope = f.get_scope()
-    var_index = new_scope.index(var)
-    new_scope[var_index].set_assignment(value)
+    new_scope.remove(var)
+    new_factor = Factor(new_name, new_scope)
+    new_values = []
+    # Keep track of already assigned values
+    old_values = []
+    for v in f.scope:
+        old_values.append(v.get_assignment_index())
 
-    new_factor = Factor(f.name+"({}={})".format(var.name,value), new_scope)
+    # set the new variable to be assigned
+    var.set_assignment(value)
+    # enforce all the assignments in the given factor on new_scope
+    recursive_restrict_all(f, new_scope, new_values)
 
+    #Reset the changes
+    for i in range(len(f.scope)):
+        copy = f.get_scope()
+        copy[i].set_assignment_index(old_values[i])
+
+    # add the new computed assignments/values
     new_factor.values = new_values
-
     return new_factor
+
+def recursive_restrict_all(factor, new_scope, new_values):
+    """
+    Recursive helper function for restrict_factor.
+    Recursively check all values in domain by recursively assigning the
+    variables in their domains
+    """
+    # if no more variables are left to be assigned, get the value at that assignment
+    if len(new_scope) == 0:
+        new_values.append(factor.get_value_at_current_assignments())
+    # keep restricting until we get an assignment
+    else:
+        for v in new_scope[0].domain():
+            new_scope[0].set_assignment(v)
+            recursive_restrict_all(factor, new_scope[1:], new_values)
+
 
 
 def sum_out_variable(f, var):
@@ -377,15 +397,13 @@ def sum_out_variable(f, var):
        followed by the summing out of Var'''
     #IMPLEMENT
     ##Check for one variable:
-
-
     old_scope = f.get_scope()
     new_scope = []
     for el in old_scope:
         if el.name != var.name:
             new_scope.append(el)
 
-    new_name = "Sigma{}".format(var) + f.name
+    new_name = "Sum{}".format(var.name) + f.name
 
     new_factor = Factor(new_name, new_scope)
 
@@ -396,7 +414,6 @@ def sum_out_variable(f, var):
     possible_new_domains = list(possible_new_domains)
 
     CPT_cols = []
-    local = []
     get_v = 0
     for d in possible_new_domains:
         d = list(d)
@@ -406,31 +423,13 @@ def sum_out_variable(f, var):
         CPT_cols.append(d +[get_v])
         get_v = 0
     new_factor.add_values(CPT_cols)
-    # for v in value_list:
-    #     get_v = 0
-    #     print("value looked at: {}\n".format(v))
-    #     for d in all_possible_domains:
-    #         print("assignment looked at {}".format(d))
-    #         print("value of variable looked at in that assignment {}\n".format(d[index_of_var]))
-    #         if d[index_of_var] == v:
-    #             print("Entered condition")
-    #             get_v += f.get_value(d)
-    #             print("Got: {}\n".format(get_v))
-    #         local = list(d)
-    #     local.pop(index_of_var)
-    #     print("final value of summed probs {}".format(get_v))
-    #     CPT_cols.append(local +[get_v])
-
     new_factor.add_values(CPT_cols)
-    print("new_factor {}".format(new_factor))
     return new_factor
 
 def normalize(nums):
     '''take as input a list of number and return a new list of numbers where
     now the numbers sum to 1, i.e., normalize the input numbers'''
     normalizing_constant = sum(nums)
-
-
     if normalizing_constant == 0:
         return [0]
     else:
@@ -523,40 +522,31 @@ def VE(Net, QueryVar, EvidenceVars):
    Pr(A='a'|B=1, C='c') = 0.26
     '''
     #IMPLEMENT
-    # order variables that are not the query var by heuristic
-    copy_net_factors = Net.factors()
-    ordering = min_fill_ordering(copy_net_factors, QueryVar)
-    factor_list = Net.factors()
-    #do variable elimination on variables
+    new_factors = Net.factors()
+
+    # preprocess the list of factors by restricting their values to the evidence
+    for i in range(len(new_factors)):
+        for var in EvidenceVars:
+            if var in new_factors[i].get_scope():
+                new_factor = restrict_factor(new_factors[i], var, var.get_evidence())
+                new_factors[i] = new_factor
+
+    ordering = min_fill_ordering(new_factors, QueryVar)
+    # simplify products of same variables into sums according to VE algorithm:
+    # multiply factors that concern variable X then sum out X from that product
     for X in ordering:
-        if X in EvidenceVars:
-            for F in factor_list:
-                if X in F.get_scope():
-                    index_to_replace = factor_list.index(F)
-                    new_factor = restrict_factor(F, X, X.get_assignment())
-                    factor_list[index_to_replace] = new_factor
-                    # Project this factor onto remaining variables?
-        else:
-            factors_concerned = []
-            for F in factor_list:
-                if X in F.get_scope():
-                    factor_list.remove(F)
-                    factors_concerned.append(F)
-            if len(factors_concerned) > 1:
-                new_factor = multiply_factors(factors_concerned)
-                next_new_factor = sum_out_variable(new_factor, X)
-                factor_list.append(next_new_factor)
-            else:
-                factor_list += factors_concerned
-    # Take product of final factor list that only mentions P(QueryVar| Evidence)
-    final_factor = multiply_factors(factor_list)
+        factors_concerned = []
+        for f in new_factors:
+            if X in f.get_scope():
+                factors_concerned.append(f)
+        new_factor = multiply_factors(factors_concerned)
+        new_factor = sum_out_variable(new_factor, X)
+        for f in factors_concerned:
+            new_factors.remove(f)
+        new_factors.append(new_factor)
 
-    #assume there is only one domain variable left
-    final_variable = final_factor.get_scope()[0]
-    final_domain = final_variable.domain()
-    final_values = []
-    for f in final_domain:
-        final_variable.set_assignment(f)
-        final_values.append(final_factor.get_value_at_current_assignments())
+    # Final step of VE, multiply remaining factors of one variable QueryVar
+    final_factor = multiply_factors(new_factors)
 
-    return normalize(final_values)
+    return normalize(final_factor.values)
+
