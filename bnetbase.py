@@ -351,36 +351,26 @@ def restrict_factor(f, var, value):
     constant factor'''
     #TODO check for one variable factor
     if len(f.get_scope()) == 1:
-        return f
+        new_scope = f.get_scope()
+        new_scope[0].set_assignment(value)
+        new_factor = Factor("{}(={})".format(f.name,value), new_scope)
+        new_values = list(f.values)
+        new_factor.values = new_values
+        return new_factor
 
 
     #get a copy of f.values
     new_values = list(f.values)
-    new_scope = []
-    for el in f.get_scope():
-        if el == var:
-            el.set_assignment(value)
-        new_scope.append(el)
+    new_scope = f.get_scope()
+    var_index = new_scope.index(var)
+    new_scope[var_index].set_assignment(value)
 
     new_factor = Factor(f.name+"({}={})".format(var.name,value), new_scope)
+
     new_factor.values = new_values
+
     return new_factor
-    # new_scope = f.get_scope() - var
-    # new_name = f.name + "\A"
-    # new_factor = Factor(new_scope, new_name)
-    #
-    # current_scope = f.get_scope()
-    # current_domains = [s.domain() for s in current_scope]
-    # domain_change = current_scope.get_index(var)
-    # current_domains[domain_change] = [value]
-    #
-    # all_possible_domains = itertools.product(*current_domains)
-    # new_CPT_cols = []
-    # for d in all_possible_domains:
-    #     v = f.get_value(d)
-    #     new_CPT_cols.append(list(d) + [v])
-    # new_factor.add_values(new_CPT_cols)
-    # return new_factor
+
 
 def sum_out_variable(f, var):
     '''return a new factor that is the product of the factors in Factors
@@ -552,10 +542,12 @@ def VE(Net, QueryVar, EvidenceVars):
                 if X in F.get_scope():
                     factor_list.remove(F)
                     factors_concerned.append(F)
-            new_factor = multiply_factors(factors_concerned)
-            next_new_factor = sum_out_variable(new_factor, X)
-            factor_list.append(next_new_factor)
-
+            if len(factors_concerned) > 1:
+                new_factor = multiply_factors(factors_concerned)
+                next_new_factor = sum_out_variable(new_factor, X)
+                factor_list.append(next_new_factor)
+            else:
+                factor_list += factors_concerned
     # Take product of final factor list that only mentions P(QueryVar| Evidence)
     final_factor = multiply_factors(factor_list)
 
@@ -564,7 +556,7 @@ def VE(Net, QueryVar, EvidenceVars):
     final_domain = final_variable.domain()
     final_values = []
     for f in final_domain:
-        final_factor.scope[0].set_assignment(f)
+        final_variable.set_assignment(f)
         final_values.append(final_factor.get_value_at_current_assignments())
 
     return normalize(final_values)
