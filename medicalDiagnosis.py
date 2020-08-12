@@ -163,7 +163,6 @@ medical = BN('Medical Diagnosis',
          [F1, F2, F3, F4, F5, F6, F7, F8, F9, F10])
 
 if __name__ == '__main__':
-
     for v in [bmi, co, ht, hl, vg, gd, rg, db, ag, ac]:
         print("Variable:", v.name)
         probs = VE(medical, v, [])
@@ -173,16 +172,152 @@ if __name__ == '__main__':
         print()
 
     print('**********************')
+    # Question3
+    all_vars = [bmi, co, ht, hl, vg, gd, rg, db, ag, ac]
+    for v in all_vars:
 
-    v = bmi
-    for t in [ht, hl, vg, gd, rg, db, ag, ac]:
-        print("Variable:", t.name)
-        probs = VE(medical, v, [t, ht])
-        probs1 = VE(medical, v, [ht])
-        print(probs1)
-        print(probs)
-        doms = v.domain()
-        #for i in range(len(probs)):
-        #    for j in range(len(probs)):
-        #        print("P({0:} = {1:}|{0:} = {1:}) = {2:0.1f}".format(v.name, t.name, doms[i], 100*probs[i]))
-        print()
+        copy = list(all_vars)
+        copy.remove(v)
+        probs = VE(medical, v, [])
+        for i in range(len(v.domain())):
+            val = probs[i]
+            var_val = v.domain()[i]
+            val = round(val,10)
+            for v1 in copy:
+                copy1 = list(copy)
+                copy1.remove(v1)
+                for j in range(len(v1.domain())):
+                    v1.set_evidence(v1.domain()[j])
+                    probs1 = VE(medical,v,[v1])
+                    val1 = probs1[i]
+                    val1 = round(val1, 10)
+                    assert(len(probs) == len(probs1))
+                    # if abs(val - val1)<0.01:
+                    if val>= val1:
+                        for v2 in copy1:
+                            copy2 = list(copy1)
+                            copy2.remove(v2)
+                            for k in range(len(v2.domain())):
+                                v2.set_evidence(v2.domain()[k])
+                                probs2 = VE(medical, v, [v1,v2])
+                                val2 = probs2[i]
+                                val2 = round(val2, 10)
+                                assert(len(probs) == len(probs2))
+                                # if abs(val1-val2)<0.01:
+                                if val1>=val2:
+                                    for v3 in copy2:
+                                        copy3 = list(copy2)
+                                        copy3.remove(v3)
+                                        for m in range(len(v3.domain())):
+                                            v3.set_evidence(v3.domain()[m])
+                                            probs3 = VE(medical, v , [v1,v2,v3])
+                                            val3 = probs3[i]
+                                            val3 = round(val3,10)
+                                            assert(len(probs) == len(probs3)), "{} {}".format(len(probs), len(probs3))
+                                            # if abs(val2 - val3)<0.01:
+                                            if val2>=val3:
+                                                for v4 in copy3:
+                                                    copy4 = list(copy3)
+                                                    copy4.remove(v4)
+                                                    for n in range(len(v4.domain())):
+                                                        v4.set_evidence(v4.domain()[n])
+                                                        probs4 = VE(medical,v, [v1,v2,v3,v4])
+                                                        val4 = probs4[i]
+                                                        val4 = round(val4,10)
+                                                        assert (len(probs) == len(probs4))
+                                                        # if abs(val3- val4)<0.01:
+                                                        if val3>=val4:
+                                                            for v5 in copy4:
+                                                                for l in range(len(v5.domain())):
+                                                                    v5.set_evidence(v5.domain()[l])
+                                                                    probs5 = VE(medical, v, [v1,v2,v3,v4,v5])
+                                                                    val5 = probs5[i]
+                                                                    val5 = round(val5,10)
+                                                                    assert (len(probs) == len(probs5))
+                                                                    # if abs(val4- val5)<0.01:
+                                                                    if val4>=val5:
+                                                                        print(v.name,v1.name,v2.name,v3.name,v4.name,v5.name)
+                                                                        print(v.domain()[i], v1.domain()[j], v2.domain()[k], v3.domain()[m], v4.domain()[n], v5.domain()[l])
+                                                                        print(probs, val)
+                                                                        print(probs1, val1)
+                                                                        print(probs2, val2)
+                                                                        print(probs3, val3)
+                                                                        print(probs4, val4)
+                                                                        print(probs5, val5)
+                                                                        print()
+    # BMI
+    # Vegetables
+    # Activity
+    # Region
+    # Gender
+    # CentralObesity
+    # < 18.5
+    # 400 - 500
+    # g / d
+    # Sufficient
+    # City
+    # Female
+    # NO
+    # [0.373, 0.406, 0.204, 0.017]
+    # 0.02
+    # [0.382184582938641, 0.4026501978398328, 0.1974642215350928, 0.01770099768643342]
+    # 0.02
+    # [0.3969272389075925, 0.3974341985187863, 0.18672259703060862, 0.01891596554301259]
+    # 0.02
+    # [0.3872460647822655, 0.3904825540424473, 0.2055629278547203, 0.01670845332056701]
+    # 0.02
+    # [0.39772620048525215, 0.38733649477277443, 0.19752777087706871, 0.01740953386490466]
+    # 0.02
+    # [0.6789141127526862, 0.2551226012288779, 0.016516168364544188, 0.049447117653891634]
+    # 0.02
+
+    # v = bmi
+    # for t in [ht, hl, vg, gd, rg, db, ag, ac]:
+    #     print("Variable:", t.name)
+    #     probs = VE(medical, v, [ht])
+    #     probs1 = VE(medical, v, [ht,t])
+    #     if(t != hl and t != ht and t !=vg and  t!= bmi):
+    #         print(probs1)
+    #         print(probs)
+    #     doms = v.domain()
+    #     # for i in range(len(probs)):
+    #     #    for j in range(len(probs)):
+    #     #        print("P({0:} = {1:}|{0:} = {1:}) = {2:0.1f}".format(v.name, t.name, doms[i], 100*probs[i]))
+    #     print()
+
+    print('************************')
+
+    ##QUESTION 2
+    # all_vars = [ht, hl, vg, gd, rg, db, ag, ac, bmi]
+    # for v in all_vars:
+    #     copy2 = list(all_vars)
+    #     copy2.remove(v)
+    #     for v2 in copy2:
+    #         copy3 = list(all_vars)
+    #         copy3.remove(v)
+    #         copy3.remove(v2)
+    #         for v3 in copy3:
+    #             copy4 = list(all_vars)
+    #             copy4.remove(v)
+    #             copy4.remove(v2)
+    #             copy4.remove(v3)
+    #             for v4 in copy4:
+    #                 copy5 = list(all_vars)
+    #                 copy5.remove(v)
+    #                 copy5.remove(v2)
+    #                 copy5.remove(v3)
+    #                 copy5.remove(v4)
+    #                 for v5 in copy5:
+    #                     probs0 = VE(medical, v, [v3,v4])
+    #                     probs = VE(medical, v, [v3,v4,v2])
+    #                     probs1 = VE(medical, v, [v3,v4,v2,v5])
+    #                     probs2 = VE(medical,v, [v3,v4,v5] )
+    #                     if abs(probs0[1] - probs[1]) <0.01 and abs(probs1[1] - probs2[1] >0.05):
+    #                         print("V1 {} V2 {} V3 {} V4 {} V5 {}".format(v.name, v2.name, v3.name, v4.name, v5.name))
+    #                         print()
+    #                         print(probs0)
+    #                         print(probs)
+    #                         print()
+    #                         print(probs2)
+    #                         print(probs1)
+    #                         print()
